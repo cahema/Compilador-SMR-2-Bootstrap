@@ -338,7 +338,7 @@ function ejecutar() {
 	procActual.auxiliares.limpiarBanderas();
 
 	let strOutput = "";
-	strOutput = "<pre>"; //Se usa <pre> para que el texto pueda usar caracteres especiales como nuevas lineas
+	strOutput = "<p>"; //Se usa <pre> para que el texto pueda usar caracteres especiales como nuevas lineas
 
 	//Se repite el bucle hasta que llegue al final del programa o a la linea 255
 	while (procActual.memoria.linea < procActual.memoria.programa.length && procActual.memoria.linea <= 255) {
@@ -356,7 +356,9 @@ function ejecutar() {
 			if (resultadoOperacion != undefined) {
 				if (typeof resultadoOperacion == "number" && ProcSMR2.banderas.usaNegativos) { strOutput += resultadoOperacion-127; }
 				else {
-					console.log(/\r|\n/.exec(strOutput));
+					if(resultadoOperacion == "\n"){
+						resultadoOperacion = "<br>"
+					}
 					strOutput += resultadoOperacion;
 				}
 			}
@@ -364,7 +366,7 @@ function ejecutar() {
 		procActual.memoria.linea++;
 	}
 
-	strOutput += "</pre>";
+	strOutput += "</p>";
 	divOutput.innerHTML = strOutput;
 	divErrorBinario.innerHTML = "";
 
