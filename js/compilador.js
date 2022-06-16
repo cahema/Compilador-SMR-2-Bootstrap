@@ -111,7 +111,7 @@ let ProcSMR2 = {
 
   auxiliares : {		//Objeto donde se guardan varias funciones auxiliares que ayudan a hacer el código más legible
 
-		operacionActual : function() {
+	operacionActual : function() {
 		return ProcSMR2.memoria.programa[ProcSMR2.memoria.linea]["operacion"];
 		},
 
@@ -213,7 +213,7 @@ function generar() {
 	}
 
 	let txtCodigo = document.querySelector("#txtCodigo").value.toLowerCase(); //Recuperamos el texto en el textarea de código
-	let divErrorCodigo = document.querySelector("#divErrorCodigo");
+	let divErrorCodigo = document.querySelector("#divError");
 
 	if (txtCodigo == "") { //Si está vacío, muestra un error
 		divErrorCodigo.innerHTML = "Error: introduzca código para generar el código binario";
@@ -282,7 +282,6 @@ function generar() {
 	}
 	document.querySelector("#txtBinario").value = strBinario; //Mostrar el valor en el textarea del código binario
 	divErrorCodigo.innerHTML = "";
-	divErrorBinario.innerHTML = "";
 }
 
 /*
@@ -296,7 +295,7 @@ function generar() {
 function ejecutar() {
 
 	let txtBinario      = document.querySelector("#txtBinario").value;
-	let divErrorBinario = document.querySelector("#divErrorBinario");
+	let divErrorBinario = document.querySelector("#divError");
 	let divOutput       = document.querySelector("#divOutput");
 	divOutput.innerHTML = "";
 
@@ -356,7 +355,10 @@ function ejecutar() {
 			let resultadoOperacion = procActual.operaciones[procActual.auxiliares.operacionActual()]();
 			if (resultadoOperacion != undefined) {
 				if (typeof resultadoOperacion == "number" && ProcSMR2.banderas.usaNegativos) { strOutput += resultadoOperacion-127; }
-				else { strOutput += resultadoOperacion; }
+				else {
+					console.log(/\r|\n/.exec(strOutput));
+					strOutput += resultadoOperacion;
+				}
 			}
 		}
 		procActual.memoria.linea++;

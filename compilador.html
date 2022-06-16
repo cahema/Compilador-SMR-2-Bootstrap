@@ -11,12 +11,47 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/general.css">
+    <link rel="stylesheet" href="css/compilador.css">
 </head>
 
 <body class="bg-light">
     <nav id="navbar"></nav>
     <main id="mainContent" class="container my-5">
-        
+        <div class="row">
+            <div class="col-12 col-lg-3 rounded shadow bg-body p-5 mb-5 mb-lg-0">
+                <div class="form-floating">
+                    <textarea id="txtCodigo" class="form-control shadow-sm"></textarea>
+                    <label for="txtCodigo">Código a compilar</label>
+                </div>
+            </div>
+            <div class="col-12 col-lg-8 offset-lg-1 row g-0">
+                <div id="divBinario" class="col-12 rounded shadow bg-body p-5 mb-5 mb-lg-0">
+                    <div class="form-floating">
+                        <textarea id="txtBinario" class="form-control shadow-sm"></textarea>
+                        <label for="txtBinario">Código a ejecutar</label>
+                    </div>
+                </div>
+                <div class="col-12 row g-0">
+                    <div class="col-12 col-lg-7 rounded shadow bg-body p-5 mb-5 mb-lg-0">
+                        <div class="form-floating">
+                            <div id="divOutput" class="form-control shadow-sm"></div>
+                            <label for="divOutput">Resultado de la ejecución</label>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-4 offset-lg-1 rounded shadow bg-body p-3 mb-5 mb-lg-0">
+                        <div class="form-floating">
+                            <div id="divError" class="form-control shadow-sm"></div>
+                            <label for="divError">Errores</label>
+                        </div>
+                        <div class="text-center mt-5">
+                            <input type="button" id="btnGenerar" class="btn btn-primary" value="Generar Código">
+                            <input type="button" id="btnEjecutar" class="btn btn-primary" value="Ejecutar">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>

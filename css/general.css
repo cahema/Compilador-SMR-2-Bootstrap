@@ -1,0 +1,7 @@
+body {
+    padding-top: 56px;
+}
+
+.container {
+    max-width: 95vw !important;
+}

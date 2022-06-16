@@ -1,0 +1,21 @@
+#txtCodigo {
+    height: 60vh !important;
+}
+
+#divBinario {
+    height: 40vh !important;
+}
+
+#txtBinario {
+    height: 27vh !important;
+}
+
+#divOutput {
+    height: 12vh;
+}
+
+@media (max-width: 991.98px) {
+    #txtBinario {
+        height: 24vh !important;
+    }
+}
