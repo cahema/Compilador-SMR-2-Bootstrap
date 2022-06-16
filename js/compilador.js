@@ -372,5 +372,12 @@ function ejecutar() {
 //      MAIN      //
 ////////////////////
 
+$("#navbar").load("navbar.html", function() {
+    $("#navSobreMi").removeClass("active");
+    $("#navCompilador").addClass("active");
+    $("#navJuego").removeClass("active");
+    $("#navHistoria").removeClass("active");
+});
+
 document.querySelector("#btnGenerar").addEventListener("click", generar);
 document.querySelector("#btnEjecutar").addEventListener("click", ejecutar);
