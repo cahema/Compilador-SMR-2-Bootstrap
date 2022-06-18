@@ -379,8 +379,8 @@ function ejecutar() {
 $("#navbar").load("navbar.html", function() {
     $("#navSobreMi").removeClass("active");
     $("#navCompilador").addClass("active");
+	$("#navHistoria").removeClass("active");
     $("#navJuego").removeClass("active");
-    $("#navHistoria").removeClass("active");
 });
 
 document.querySelector("#btnGenerar").addEventListener("click", generar);
