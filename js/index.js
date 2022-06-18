@@ -5,5 +5,4 @@ $("#navbar").load("navbar.html", function() {
     $("#navCompilador").removeClass("active");
     $("#navHistoria").removeClass("active");
     $("#navJuego").removeClass("active");
-
 });
