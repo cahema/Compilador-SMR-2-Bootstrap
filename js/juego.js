@@ -109,7 +109,7 @@ function pantallaFinal() {
 
 //Función temporizador
 function temporizador() {
-	tiempoRestante = 300;
+	tiempoRestante = 30;
 	pausa = setInterval(countdown, 1000);
 
 	function countdown() {
