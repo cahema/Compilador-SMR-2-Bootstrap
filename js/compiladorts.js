@@ -1,27 +1,29 @@
 "use strict";
-var instrucciones = {
-    imprime: { codigoBinario: "00000", codigoTexto: "imprime", usaRegistro: true, usaDatos: false },
-    imprimec: { codigoBinario: "00001", codigoTexto: "imprimec", usaRegistro: true, usaDatos: false },
-    valor: { codigoBinario: "00010", codigoTexto: "valor", usaRegistro: true, usaDatos: true },
-    borra: { codigoBinario: "00011", codigoTexto: "borra", usaRegistro: true, usaDatos: false },
-    suma: { codigoBinario: "00100", codigoTexto: "suma", usaRegistro: true, usaDatos: true },
-    resta: { codigoBinario: "00101", codigoTexto: "resta", usaRegistro: true, usaDatos: true },
-    salta: { codigoBinario: "00110", codigoTexto: "salta", usaRegistro: false, usaDatos: true },
-    saltasi0: { codigoBinario: "00111", codigoTexto: "saltasi0", usaRegistro: true, usaDatos: true },
-    negativos: { codigoBinario: "01000", codigoTexto: "negativos", usaRegistro: false, usaDatos: false },
-    positivos: { codigoBinario: "01001", codigoTexto: "positivos", usaRegistro: false, usaDatos: false }
-};
-var registros = {
-    r0: "000",
-    r1: "001",
-    r2: "010",
-    r3: "011",
-    r4: "100",
-    r5: "101",
-    r6: "110",
-    r7: "111"
-};
 var procSMR2 = {
+    diccionarios: {
+        instrucciones: {
+            imprime: { codigoBinario: "00000", codigoTexto: "imprime", usaRegistro: true, usaDatos: false },
+            imprimec: { codigoBinario: "00001", codigoTexto: "imprimec", usaRegistro: true, usaDatos: false },
+            valor: { codigoBinario: "00010", codigoTexto: "valor", usaRegistro: true, usaDatos: true },
+            borra: { codigoBinario: "00011", codigoTexto: "borra", usaRegistro: true, usaDatos: false },
+            suma: { codigoBinario: "00100", codigoTexto: "suma", usaRegistro: true, usaDatos: true },
+            resta: { codigoBinario: "00101", codigoTexto: "resta", usaRegistro: true, usaDatos: true },
+            salta: { codigoBinario: "00110", codigoTexto: "salta", usaRegistro: false, usaDatos: true },
+            saltasi0: { codigoBinario: "00111", codigoTexto: "saltasi0", usaRegistro: true, usaDatos: true },
+            negativos: { codigoBinario: "01000", codigoTexto: "negativos", usaRegistro: false, usaDatos: false },
+            positivos: { codigoBinario: "01001", codigoTexto: "positivos", usaRegistro: false, usaDatos: false },
+        },
+        registros: {
+            r0: "000",
+            r1: "001",
+            r2: "010",
+            r3: "011",
+            r4: "100",
+            r5: "101",
+            r6: "110",
+            r7: "111",
+        },
+    },
     memoria: {
         registros: [0, 0, 0, 0, 0, 0, 0, 0],
         programa: [],
@@ -68,7 +70,6 @@ var procSMR2 = {
         numeroIlegal: false,
         etiquetaIlegal: false,
         usaNegativos: false,
-        campoVacio: false,
     },
     auxiliares: {
         operacionActual: function () {
@@ -81,6 +82,10 @@ var procSMR2 = {
         datoActual: function () {
             var datoBin = procSMR2.memoria.programa[procSMR2.memoria.linea]["dato"];
             return parseInt(datoBin, 2);
+        },
+        resetearProcesador: function () {
+            this.limpiarBanderas();
+            this.limpiarMemoria();
         },
         limpiarBanderas: function () {
             var arrayBanderas = Object.keys(procSMR2.banderas);
@@ -97,39 +102,110 @@ var procSMR2 = {
             procSMR2.memoria.linea = 0;
             procSMR2.memoria.etiquetas = {};
         },
-    },
+    }
 };
-function mostrarError(stringError, divError, lineaError) {
-    divError.val(stringError + lineaError);
-    throw new Error(stringError);
+var maximoLineas = 255;
+var divError = $("#divError");
+function mostrarError(error) {
+    divError.text(error);
+    throw new Error(error);
+}
+function mostrarResultado(resultado, divResultado) {
+    divResultado.text(resultado);
+    divError.text("");
 }
 function generar() {
-    function comprobarErrores() {
-        if (procSMR2.banderas.instruccionIlegal) {
-            mostrarError("Error: ha introducido una instrucción ilegal en la línea " + lineaError, divErrorCodigo);
+    function generarArrayCodigo() {
+        if (txtCodigo == "") {
+            mostrarError("Error: el campo de código está vacío");
         }
-        else if (procSMR2.banderas.registroIlegal) {
-            mostrarError("Error: ha introducido un registro ilegal en la línea " + lineaError, divErrorCodigo);
+        var arrayPorLineas = txtCodigo.split(/\r?\n/);
+        var arrayGenerado = new Array;
+        for (var linea_1 = 0; linea_1 < arrayPorLineas.length; linea_1++) {
+            var lineaSeparada = arrayPorLineas[linea_1].split(/\s+/);
+            arrayGenerado[linea_1] = new Array;
+            if (lineaSeparada.length > 3) {
+                mostrarError("Error: demasiados argumentos en la línea " + (linea_1 + 1));
+            }
+            for (var cadena = 0; cadena < lineaSeparada.length; cadena++) {
+                arrayGenerado[linea_1][cadena] = lineaSeparada[cadena];
+            }
         }
-        else if (procSMR2.banderas.numeroIlegal) {
-            mostrarError("Error: ha introducido un número ilegal en la línea " + lineaError, divErrorCodigo);
+        generarEtiquetas(arrayGenerado);
+        if (arrayGenerado.length > 255) {
+            mostrarError("Error: el programa introducido supera el límite de lineas");
         }
-        else if (procSMR2.banderas.etiquetaIlegal) {
-            mostrarError("Error: ha introducido una etiqueta no declarada en la linea " + lineaError, divErrorCodigo);
+        return arrayGenerado;
+    }
+    function generarEtiquetas(arrayGenerado) {
+        for (var contador = 0; contador < arrayGenerado.length; contador++) {
+            if (arrayGenerado[contador][0].match(/:$/)) {
+                var etiquetaSinPuntos = arrayGenerado[contador][0].replace(":", "");
+                procSMR2.memoria.etiquetas[etiquetaSinPuntos] = contador.toString();
+                arrayGenerado.splice(contador, 1);
+            }
         }
     }
-    var txtCodigo = $("#txtCodigo").text().toLowerCase();
-    var divErrorCodigo = $("#divError");
-    var arrCodigo = txtCodigo.split(/\s+/);
+    function instruccionABinario(instruccionActual) {
+        if (instruccionActual == undefined) {
+            mostrarError("Error: ha introducido una instrucción ilegal en la línea " + (linea + 1));
+        }
+        strBinario += instruccionActual["codigoBinario"];
+    }
+    function registroABinario(instruccionActual, linea) {
+        if (instruccionActual["usaRegistro"]) {
+            if (procSMR2.diccionarios.registros[arrCodigo[linea][1]] == undefined) {
+                mostrarError("Error: ha introducido un registro ilegal en la línea " + (linea + 1));
+            }
+            strBinario += procSMR2.diccionarios.registros[arrCodigo[linea][1]];
+        }
+        else {
+            strBinario += "000";
+        }
+    }
+    function datoABinario(instruccionActual, linea) {
+        if (instruccionActual["usaDatos"]) {
+            var posicion = 2;
+            if (!instruccionActual["usaRegistro"]) {
+                posicion--;
+            }
+            if (isNaN(Number(arrCodigo[linea][posicion]))) {
+                if (procSMR2.memoria.etiquetas[arrCodigo[linea][posicion]] != undefined) {
+                    arrCodigo[linea][posicion] = procSMR2.memoria.etiquetas[arrCodigo[linea][posicion]];
+                }
+                else {
+                    mostrarError("Error: ha introducido una etiqueta no declarada en la linea " + (linea + 1));
+                }
+            }
+            if (Number(arrCodigo[linea][posicion]) < 0 || Number(arrCodigo[linea][posicion]) > 255) {
+                mostrarError("Error: ha introducido un número ilegal en la línea " + linea);
+            }
+            else {
+                var numTemporal = Number(arrCodigo[linea][posicion]).toString(2);
+                while (numTemporal.length < 8) {
+                    numTemporal = "0" + numTemporal;
+                }
+                strBinario += numTemporal;
+            }
+        }
+        else {
+            strBinario += "00000000";
+        }
+    }
+    var txtCodigo = $("#txtCodigo").val().toString().toLowerCase();
+    var arrCodigo = generarArrayCodigo();
+    var linea = 0;
     var strBinario = "";
-    var lineaError = 0;
-    if (arrCodigo[0] == "") {
-        mostrarError("Error: introduzca código para generar el código binario", divErrorCodigo);
+    procSMR2.auxiliares.limpiarBanderas();
+    procSMR2.memoria.etiquetas = {};
+    for (linea = 0; linea < arrCodigo.length; linea++) {
+        var instruccionActual = procSMR2.diccionarios.instrucciones[arrCodigo[linea][0]];
+        instruccionABinario(instruccionActual);
+        registroABinario(instruccionActual, linea);
+        datoABinario(instruccionActual, linea);
     }
-    for (var contador = 0; contador < arrCodigo.length; contador++) {
-        comprobarErrores();
-        var instruccionActual = procSMR2.diccionarios.instrucciones[arrCodigo[contador]];
-    }
+    mostrarResultado(strBinario, $("#txtBinario"));
+    procSMR2.auxiliares.resetearProcesador();
 }
 function ejecutar() {
     throw new Error("Function not implemented.");
