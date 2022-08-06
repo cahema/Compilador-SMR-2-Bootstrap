@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+      "target": "es5",
+      "strict": true,
+      "module": "commonjs",
+      "removeComments": true,
+      "sourceMap": true
+    },
+    "files": [
+        "./js/compiladorts.ts"
+    ]
+  }
