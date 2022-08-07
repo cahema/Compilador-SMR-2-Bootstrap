@@ -324,12 +324,12 @@ function generar(): void {
         }
     }
 
+    procSMR2.auxiliares.limpiarBanderas();
+    procSMR2.memoria.etiquetas = {};
     let txtCodigo: string = $("#txtCodigo").val()!.toString().toLowerCase(); //Recuperamos el texto en el textarea de código
     let arrCodigo: string[][] = generarArrayCodigo();
     let linea: number = 0;
     let strBinario: string = ""; //Una cadena para el binario
-    procSMR2.auxiliares.limpiarBanderas();
-    procSMR2.memoria.etiquetas = {};
 
     for (linea = 0; linea < arrCodigo.length; linea++) {
         let instruccionActual: Instruccion = procSMR2.diccionarios.instrucciones[arrCodigo[linea][0]];

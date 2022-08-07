@@ -192,12 +192,12 @@ function generar() {
             strBinario += "00000000";
         }
     }
+    procSMR2.auxiliares.limpiarBanderas();
+    procSMR2.memoria.etiquetas = {};
     var txtCodigo = $("#txtCodigo").val().toString().toLowerCase();
     var arrCodigo = generarArrayCodigo();
     var linea = 0;
     var strBinario = "";
-    procSMR2.auxiliares.limpiarBanderas();
-    procSMR2.memoria.etiquetas = {};
     for (linea = 0; linea < arrCodigo.length; linea++) {
         var instruccionActual = procSMR2.diccionarios.instrucciones[arrCodigo[linea][0]];
         instruccionABinario(instruccionActual);
