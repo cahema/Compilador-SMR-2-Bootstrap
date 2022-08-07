@@ -324,8 +324,7 @@ function generar(): void {
         }
     }
 
-    procSMR2.auxiliares.limpiarBanderas();
-    procSMR2.memoria.etiquetas = {};
+    procSMR2.auxiliares.resetearProcesador();
     let txtCodigo: string = $("#txtCodigo").val()!.toString().toLowerCase(); //Recuperamos el texto en el textarea de código
     let arrCodigo: string[][] = generarArrayCodigo();
     let linea: number = 0;
@@ -339,7 +338,6 @@ function generar(): void {
     }
 
     mostrarResultado(strBinario, $("#txtBinario"));
-    procSMR2.auxiliares.resetearProcesador();
 }
 
 /*

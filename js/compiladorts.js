@@ -192,8 +192,7 @@ function generar() {
             strBinario += "00000000";
         }
     }
-    procSMR2.auxiliares.limpiarBanderas();
-    procSMR2.memoria.etiquetas = {};
+    procSMR2.auxiliares.resetearProcesador();
     var txtCodigo = $("#txtCodigo").val().toString().toLowerCase();
     var arrCodigo = generarArrayCodigo();
     var linea = 0;
@@ -205,7 +204,6 @@ function generar() {
         datoABinario(instruccionActual, linea);
     }
     mostrarResultado(strBinario, $("#txtBinario"));
-    procSMR2.auxiliares.resetearProcesador();
 }
 function ejecutar() {
     throw new Error("Function not implemented.");
