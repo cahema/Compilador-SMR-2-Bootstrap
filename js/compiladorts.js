@@ -134,8 +134,8 @@ function generar() {
             if (lineaSeparada.length > 3) {
                 mostrarError("Error: demasiados argumentos en la l\u00EDnea ".concat(linea_1 + 1));
             }
-            for (var cadena = 0; cadena < lineaSeparada.length; cadena++) {
-                arrayGenerado[linea_1][cadena] = lineaSeparada[cadena];
+            for (var elementoLinea = 0; elementoLinea < lineaSeparada.length; elementoLinea++) {
+                arrayGenerado[linea_1][elementoLinea] = lineaSeparada[elementoLinea];
             }
         }
         generarEtiquetas(arrayGenerado);
@@ -145,11 +145,11 @@ function generar() {
         return arrayGenerado;
     }
     function generarEtiquetas(arrayGenerado) {
-        for (var contador = 0; contador < arrayGenerado.length; contador++) {
-            if (arrayGenerado[contador][0].match(/:$/)) {
-                var etiquetaSinPuntos = arrayGenerado[contador][0].replace(":", "");
-                procSMR2.memoria.etiquetas[etiquetaSinPuntos] = contador.toString();
-                arrayGenerado.splice(contador, 1);
+        for (var linea_2 = 0; linea_2 < arrayGenerado.length; linea_2++) {
+            if (arrayGenerado[linea_2][0].match(/:$/)) {
+                var etiquetaSinPuntos = arrayGenerado[linea_2][0].replace(":", "");
+                procSMR2.memoria.etiquetas[etiquetaSinPuntos] = linea_2.toString();
+                arrayGenerado.splice(linea_2, 1);
             }
         }
     }
@@ -172,18 +172,11 @@ function generar() {
     }
     function datoABinario(instruccionActual, linea) {
         if (instruccionActual["usaDatos"]) {
-            var posicion = 2;
-            if (!instruccionActual["usaRegistro"]) {
-                posicion--;
+            var posicion = 1;
+            if (instruccionActual["usaRegistro"]) {
+                posicion++;
             }
-            if (isNaN(Number(arrCodigo[linea][posicion]))) {
-                if (procSMR2.memoria.etiquetas[arrCodigo[linea][posicion]] != undefined) {
-                    arrCodigo[linea][posicion] = procSMR2.memoria.etiquetas[arrCodigo[linea][posicion]];
-                }
-                else {
-                    mostrarError("Error: ha introducido una etiqueta no declarada en la linea \" ".concat(linea + 1));
-                }
-            }
+            comprobarEtiqueta(posicion);
             if (Number(arrCodigo[linea][posicion]) < 0 || Number(arrCodigo[linea][posicion]) > 255) {
                 mostrarError("Error: ha introducido un número ilegal en la línea " + linea);
             }
@@ -197,6 +190,16 @@ function generar() {
         }
         else {
             strBinario += "00000000";
+        }
+    }
+    function comprobarEtiqueta(posicion) {
+        if (isNaN(Number(arrCodigo[linea][posicion]))) {
+            if (procSMR2.memoria.etiquetas[arrCodigo[linea][posicion]] != undefined) {
+                arrCodigo[linea][posicion] = procSMR2.memoria.etiquetas[arrCodigo[linea][posicion]];
+            }
+            else {
+                mostrarError("Error: ha introducido una etiqueta no declarada en la linea \" ".concat(linea + 1));
+            }
         }
     }
     procSMR2.auxiliares.resetearProcesador();

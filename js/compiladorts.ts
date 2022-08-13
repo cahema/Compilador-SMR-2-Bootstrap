@@ -152,7 +152,6 @@ let procSMR2: ProcSMR2 = {
     },
 
     banderas: { //Objeto donde se guardan varias banderas de control
-
         usaNegativos: false,
     },
 
@@ -241,12 +240,13 @@ function mostrarResultado(resultado: string, divResultado: JQuery<HTMLElement>, 
 
 function generar(): void {
 
+    //Esta función genera el array con el código separado en tres partes
     function generarArrayCodigo(): string[][] {
         if (txtCodigo == "") { //Si está vacío, muestra un error
             mostrarError("Error: el campo de código está vacío");
         }
 
-        let arrayPorLineas: string[] = txtCodigo.split(/\r?\n/);
+        let arrayPorLineas: string[] = txtCodigo.split(/\r?\n/); //Divide el texto usando como separador espacios y retornos de carro
         let arrayGenerado: string[][] = new Array;
 
         for (let linea: number = 0; linea < arrayPorLineas.length; linea++) {
@@ -257,8 +257,8 @@ function generar(): void {
                 mostrarError(`Error: demasiados argumentos en la línea ${linea + 1}`);
             }
 
-            for (let cadena: number = 0; cadena < lineaSeparada.length; cadena++) {
-                arrayGenerado[linea][cadena] = lineaSeparada[cadena];
+            for (let elementoLinea: number = 0; elementoLinea < lineaSeparada.length; elementoLinea++) {
+                arrayGenerado[linea][elementoLinea] = lineaSeparada[elementoLinea];
             }
         }
 
@@ -270,64 +270,73 @@ function generar(): void {
 
     }
 
+    //Esta función recorre el código y elimina las etiquetas y guarda sus respectivas líneas
     function generarEtiquetas(arrayGenerado: string[][]): void {
-        for (let contador: number = 0; contador < arrayGenerado.length; contador++) {
-            if (arrayGenerado[contador][0].match(/:$/)) {
-                let etiquetaSinPuntos: string = arrayGenerado[contador][0].replace(":", "");
-                procSMR2.memoria.etiquetas[etiquetaSinPuntos] = contador.toString();
-                arrayGenerado.splice(contador, 1);
+        for (let linea: number = 0; linea < arrayGenerado.length; linea++) {
+            if (arrayGenerado[linea][0].match(/:$/)) { //Si encuentra una etiqueta
+                let etiquetaSinPuntos: string = arrayGenerado[linea][0].replace(":", ""); //Elimina los puntos
+                procSMR2.memoria.etiquetas[etiquetaSinPuntos] = linea.toString(); //Guarda la linea en la que está
+                arrayGenerado.splice(linea, 1); //Elimina la etiqueta
             }
         }
     }
 
+    //Esta función convierte el string de la instruccion a su binario correspondiente
     function instruccionABinario(instruccionActual: Instruccion): void {
-        if (instruccionActual == undefined) { //Si la instruccion no existe, es undefined y activa la bandera de instruccionIlegal
+        if (instruccionActual == undefined) { //Si la instruccion no existe, es undefined y muestra un error
             mostrarError(`Error: ha introducido una instrucción ilegal en la línea ${linea + 1}`);
         }
         strBinario += instruccionActual["codigoBinario"];
     }
 
+    //Esta función convierte el string del registro a su binario correspondiente
     function registroABinario(instruccionActual: Instruccion, linea: number): void {
         if (instruccionActual["usaRegistro"]) { //Si la instruccion usa algún registro, añadelo al binario
-            if (procSMR2.diccionarios.registros[arrCodigo[linea][1]] == undefined) { //Si el registro no es válido activa la bandera de registroIlegal
+            if (procSMR2.diccionarios.registros[arrCodigo[linea][1]] == undefined) { //Si el registro no es válido muestra un error
                 mostrarError(`Error: ha introducido un registro ilegal en la línea ${linea + 1}`);
             }
             strBinario += procSMR2.diccionarios.registros[arrCodigo[linea][1]]; //Si no, añade el valor de el registro en binario a el string binario
         }
-        else {
+        else { //En caso de que no use un registro, añadimos 3 ceros para rellenar
             strBinario += "000";
         }
     }
 
+    //Esta función convierte el string del dato a su binario correspondiente
     function datoABinario(instruccionActual: Instruccion, linea: number): void {
-        if (instruccionActual["usaDatos"]) {
-            let posicion: number = 2;
-            if (!instruccionActual["usaRegistro"]) {
-                posicion--;
+        if (instruccionActual["usaDatos"]) { //Si la instrucción usa datos, añadelo al binario
+            let posicion: number = 1; //Se asume que el dato está en la primera posición
+            if (instruccionActual["usaRegistro"]) { //Si usa un registro el dato está en la segunda posición
+                posicion++;
             }
 
-            if (isNaN(Number(arrCodigo[linea][posicion]))) {
-                if (procSMR2.memoria.etiquetas[arrCodigo[linea][posicion]] != undefined) {
-                    arrCodigo[linea][posicion] = procSMR2.memoria.etiquetas[arrCodigo[linea][posicion]];
-                }
-                else {
-                    mostrarError(`Error: ha introducido una etiqueta no declarada en la linea " ${linea + 1}`);
-                }
-            }
+            comprobarEtiqueta(posicion);
 
             if (Number(arrCodigo[linea][posicion]) < 0 || Number(arrCodigo[linea][posicion]) > 255) { //Si el dato es menor que 0 o mayor que 255 activa la bandera de numeroIlegal
                 mostrarError("Error: ha introducido un número ilegal en la línea " + linea);
             }
             else { //Si no, convierte el número a binario y añade ceros al principio hasta que mida 8 caracteres de largo
-                let numTemporal: string = Number(arrCodigo[linea][posicion]).toString(2);
+                let numTemporal: string = Number(arrCodigo[linea][posicion]).toString(2); //Convierte el número a binario y luego a string
                 while (numTemporal.length < 8) {
-                    numTemporal = "0" + numTemporal;
+                    numTemporal = "0" + numTemporal; //Añade ceros a la izquierda hasta que su longitud sea 8 caracteres
                 }
                 strBinario += numTemporal;
             }
         }
-        else {
+        else { //En caso de que no use datos, se añaden ocho ceros para rellenar
             strBinario += "00000000";
+        }
+    }
+
+    //Esta función comprueba si se usa una etiqueta y si es válida
+    function comprobarEtiqueta(posicion: number) {
+        if (isNaN(Number(arrCodigo[linea][posicion]))) { //Si no es un numero se asume que es una etiqueta
+            if (procSMR2.memoria.etiquetas[arrCodigo[linea][posicion]] != undefined) { //Si existe en el objeto etiquetas de procSMR2
+                arrCodigo[linea][posicion] = procSMR2.memoria.etiquetas[arrCodigo[linea][posicion]]; //Reemplaza la etiqueta por su número de línea
+            }
+            else { //Si no existe la etiqueta, muestra un error
+                mostrarError(`Error: ha introducido una etiqueta no declarada en la linea " ${linea + 1}`);
+            }
         }
     }
 
@@ -337,7 +346,7 @@ function generar(): void {
     let linea: number = 0;
     let strBinario: string = ""; //Una cadena para el binario
 
-    for (linea = 0; linea < arrCodigo.length; linea++) {
+    for (linea = 0; linea < arrCodigo.length; linea++) { //Bucle principal de la función
         let instruccionActual: Instruccion = procSMR2.diccionarios.instrucciones[arrCodigo[linea][0]];
         instruccionABinario(instruccionActual);
         registroABinario(instruccionActual, linea);
@@ -357,6 +366,7 @@ function generar(): void {
 
 function ejecutar(): void {
 
+    //Esta función hace comprobaciones previas a la ejecución para asegurarse de que el código está bien
     function comprobarErrores(): void {
 
         mostrarResultado("", divOutput); //Usamos esta función para limpiar el div de errores
@@ -374,11 +384,12 @@ function ejecutar(): void {
         }
     }
 
+    //Esta función separa el binario a un array que contiene tres elementos de longitud 3, 5 y 8 respectivamente
     function generarArrayBinario(): void {
         let arrayBinario: RegExpMatchArray = txtBinario.match(/.{1,16}/g)!; //Convierte el string en binario a un array con elementos que son 16 bits de largo
 
         for (let contador: number = 0; contador < arrayBinario.length; contador++) {
-            procSMR2.memoria.programa[contador] = [];
+            procSMR2.memoria.programa[contador] = []; //Se crea un nuevo array en la posición de la línea
             procSMR2.memoria.programa[contador][0] = arrayBinario[contador].slice(0, 5); //Carga la instrucción, 5 bits de largo
             procSMR2.memoria.programa[contador][1] = arrayBinario[contador].slice(5, 8); //Carga el registro, 3 bits de largo
             procSMR2.memoria.programa[contador][2] = arrayBinario[contador].slice(8, 16); //Carga el dato, 8 bits de largo
@@ -386,22 +397,23 @@ function ejecutar(): void {
     }
 
     let txtBinario: string = $("#txtBinario").val()!.toString().toLowerCase();
-    let strOutput: string = "<p>";
+    let strOutput: string = "<p>"; //Como el texto es preformateado, usamos una etiqueta HTML
 
     procSMR2.auxiliares.resetearProcesador();
     comprobarErrores();
     generarArrayBinario();
 
+    //Bucle principal de la función
     for(procSMR2.memoria.linea = 0; procSMR2.memoria.linea < procSMR2.memoria.programa.length; procSMR2.memoria.linea++) {
 
-        if (procSMR2.auxiliares.operacionActual() == undefined) {
+        if (procSMR2.auxiliares.operacionActual() == undefined) { //Si la operación no existe, muestra un error
 			mostrarError("Error: el código binario que ha introducido no es válido")
 		}
 
         let resultadoOperacion: string = procSMR2.operaciones[procSMR2.auxiliares.operacionActual()]();
     
-        if(resultadoOperacion != undefined) {
-            if(resultadoOperacion == "\n"){
+        if(resultadoOperacion != undefined) { //Si la operación ha devuelto un valor (Como por ejemplo la operación imprimec), muestralo
+            if(resultadoOperacion == "\n"){ //Si es un salto de línea, conviertelo a HTML
                 resultadoOperacion = "<br>"
             }
             strOutput += resultadoOperacion;
