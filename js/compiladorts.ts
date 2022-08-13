@@ -18,7 +18,7 @@ type Registro = {
 }
 
 type Programa = {
-    [index: string]: string
+    [index: number]: string
 }
 
 type Memoria = {
@@ -104,7 +104,11 @@ let procSMR2: ProcSMR2 = {
     operaciones: { //Objeto donde se guardan todas las operaciones posibles y su ejecución
 
         "00000": function () { //imprime
-            return procSMR2.memoria.registros[procSMR2.auxiliares.registroActual()];
+            let resultadoOperacion: number = procSMR2.memoria.registros[procSMR2.auxiliares.registroActual()];
+            if (procSMR2.banderas.usaNegativos) {
+                resultadoOperacion -= 127;
+            }
+            return resultadoOperacion.toString();
         },
 
         "00001": function () { //imprimec
@@ -149,33 +153,28 @@ let procSMR2: ProcSMR2 = {
 
     banderas: { //Objeto donde se guardan varias banderas de control
 
-        instruccionIlegal: false,
-        registroIlegal: false,
-        numeroIlegal: false,
-        etiquetaIlegal: false,
         usaNegativos: false,
-
     },
 
     auxiliares: { //Objeto donde se guardan varias funciones auxiliares que ayudan a hacer el código más legible
 
         operacionActual: function () {
-            return procSMR2.memoria.programa[procSMR2.memoria.linea]["operacion"];
+            return procSMR2.memoria.programa[procSMR2.memoria.linea][0];
         },
 
         registroActual: function () {
-            let registroBin = procSMR2.memoria.programa[procSMR2.memoria.linea]["registro"];
+            let registroBin = procSMR2.memoria.programa[procSMR2.memoria.linea][1];
             return parseInt(registroBin, 2);
         },
 
         datoActual: function () {
-            let datoBin = procSMR2.memoria.programa[procSMR2.memoria.linea]["dato"];
+            let datoBin = procSMR2.memoria.programa[procSMR2.memoria.linea][2];
             return parseInt(datoBin, 2);
         },
 
         resetearProcesador: function () {
-            this.limpiarBanderas();
-            this.limpiarMemoria();
+            procSMR2.auxiliares.limpiarBanderas();
+            procSMR2.auxiliares.limpiarMemoria();
         },
 
         limpiarBanderas: function () {
@@ -186,6 +185,7 @@ let procSMR2: ProcSMR2 = {
         },
 
         limpiarMemoria: function () {
+            procSMR2.memoria.linea = 0;
             for (let i = 0; i < procSMR2.memoria.registros.length; i++) {
                 procSMR2.memoria.registros[i] = 0;
             }
@@ -202,13 +202,15 @@ let procSMR2: ProcSMR2 = {
 //  CONSTANTES  //
 //////////////////
 
-const maximoLineas: number = 255;
+const maximoLineas: number = 256;
+const divError: JQuery<HTMLElement> = $("#divError");
+const divOutput: JQuery<HTMLElement> = $("#divOutput");
 
 ///////////////////
 //   VARIABLES   //
 ///////////////////
 
-let divError: JQuery<HTMLElement> = $("#divError");
+
 
 ///////////////////
 //   FUNCIONES   //
@@ -219,8 +221,13 @@ function mostrarError(error: string): void {
     throw new Error(error);
 }
 
-function mostrarResultado(resultado: string, divResultado: JQuery<HTMLElement>): void {
-    divResultado.text(resultado);
+function mostrarResultado(resultado: string, divResultado: JQuery<HTMLElement>, preFormateado?: boolean): void {
+    if(preFormateado) {
+        divResultado.html(resultado);
+    }
+    else {
+        divResultado.text(resultado);
+    }
     divError.text("");
 }
 
@@ -247,7 +254,7 @@ function generar(): void {
             arrayGenerado[linea] = new Array;
 
             if (lineaSeparada.length > 3) {
-                mostrarError("Error: demasiados argumentos en la línea " + (linea + 1));
+                mostrarError(`Error: demasiados argumentos en la línea ${linea + 1}`);
             }
 
             for (let cadena: number = 0; cadena < lineaSeparada.length; cadena++) {
@@ -256,7 +263,7 @@ function generar(): void {
         }
 
         generarEtiquetas(arrayGenerado);
-        if (arrayGenerado.length > 255) {
+        if (arrayGenerado.length > maximoLineas) {
             mostrarError("Error: el programa introducido supera el límite de lineas");
         }
         return arrayGenerado;
@@ -264,7 +271,7 @@ function generar(): void {
     }
 
     function generarEtiquetas(arrayGenerado: string[][]): void {
-        for (let contador = 0; contador < arrayGenerado.length; contador++) {
+        for (let contador: number = 0; contador < arrayGenerado.length; contador++) {
             if (arrayGenerado[contador][0].match(/:$/)) {
                 let etiquetaSinPuntos: string = arrayGenerado[contador][0].replace(":", "");
                 procSMR2.memoria.etiquetas[etiquetaSinPuntos] = contador.toString();
@@ -275,7 +282,7 @@ function generar(): void {
 
     function instruccionABinario(instruccionActual: Instruccion): void {
         if (instruccionActual == undefined) { //Si la instruccion no existe, es undefined y activa la bandera de instruccionIlegal
-            mostrarError("Error: ha introducido una instrucción ilegal en la línea " + (linea + 1));
+            mostrarError(`Error: ha introducido una instrucción ilegal en la línea ${linea + 1}`);
         }
         strBinario += instruccionActual["codigoBinario"];
     }
@@ -283,7 +290,7 @@ function generar(): void {
     function registroABinario(instruccionActual: Instruccion, linea: number): void {
         if (instruccionActual["usaRegistro"]) { //Si la instruccion usa algún registro, añadelo al binario
             if (procSMR2.diccionarios.registros[arrCodigo[linea][1]] == undefined) { //Si el registro no es válido activa la bandera de registroIlegal
-                mostrarError("Error: ha introducido un registro ilegal en la línea " + (linea + 1));
+                mostrarError(`Error: ha introducido un registro ilegal en la línea ${linea + 1}`);
             }
             strBinario += procSMR2.diccionarios.registros[arrCodigo[linea][1]]; //Si no, añade el valor de el registro en binario a el string binario
         }
@@ -304,7 +311,7 @@ function generar(): void {
                     arrCodigo[linea][posicion] = procSMR2.memoria.etiquetas[arrCodigo[linea][posicion]];
                 }
                 else {
-                    mostrarError("Error: ha introducido una etiqueta no declarada en la linea " + (linea + 1));
+                    mostrarError(`Error: ha introducido una etiqueta no declarada en la linea " ${linea + 1}`);
                 }
             }
 
@@ -349,7 +356,61 @@ function generar(): void {
 */
 
 function ejecutar(): void {
-    throw new Error("Function not implemented.");
+
+    function comprobarErrores(): void {
+
+        mostrarResultado("", divOutput); //Usamos esta función para limpiar el div de errores
+
+        if (txtBinario.length > (maximoLineas * 2)) { //Si el programa es más de 512 bytes de largo, muestra un error
+            mostrarError(`Error: el programa supera la longitud de ${maximoLineas * 2} bytes`);
+        }
+
+        else if (txtBinario == "") { //Si está vacío, muestra un error
+            mostrarError("Error: introduzca código binario válido para ejecutarlo");
+        }
+
+        else if (txtBinario.length % 16 != 0) { //Si no se puede dividir perfectamente entre 16 no es válido
+            mostrarError("Error, el programa tiene una longitud inválida (No es dividible entre 16)");
+        }
+    }
+
+    function generarArrayBinario(): void {
+        let arrayBinario: RegExpMatchArray = txtBinario.match(/.{1,16}/g)!; //Convierte el string en binario a un array con elementos que son 16 bits de largo
+
+        for (let contador: number = 0; contador < arrayBinario.length; contador++) {
+            procSMR2.memoria.programa[contador] = [];
+            procSMR2.memoria.programa[contador][0] = arrayBinario[contador].slice(0, 5); //Carga la instrucción, 5 bits de largo
+            procSMR2.memoria.programa[contador][1] = arrayBinario[contador].slice(5, 8); //Carga el registro, 3 bits de largo
+            procSMR2.memoria.programa[contador][2] = arrayBinario[contador].slice(8, 16); //Carga el dato, 8 bits de largo
+        }
+    }
+
+    let txtBinario: string = $("#txtBinario").val()!.toString().toLowerCase();
+    let strOutput: string = "<p>";
+
+    procSMR2.auxiliares.resetearProcesador();
+    comprobarErrores();
+    generarArrayBinario();
+
+    for(procSMR2.memoria.linea = 0; procSMR2.memoria.linea < procSMR2.memoria.programa.length; procSMR2.memoria.linea++) {
+
+        if (procSMR2.auxiliares.operacionActual() == undefined) {
+			mostrarError("Error: el código binario que ha introducido no es válido")
+		}
+
+        let resultadoOperacion: string = procSMR2.operaciones[procSMR2.auxiliares.operacionActual()]();
+    
+        if(resultadoOperacion != undefined) {
+            if(resultadoOperacion == "\n"){
+                resultadoOperacion = "<br>"
+            }
+            strOutput += resultadoOperacion;
+        }
+	}
+
+	strOutput += "</p>";
+	mostrarResultado(strOutput, divOutput, true);
+
 }
 
 ////////////////////
